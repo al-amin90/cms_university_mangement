@@ -169,7 +169,50 @@ const forgetPassword = async (id: string) => {
 
   const resetUILink = `${config.frontend_url}?id=${user.id}&token=${resetToken}`
 
-  sendEmail(user.email, 'Reset Your Password within 10 Minute', resetUILink)
+  await sendEmail(
+    user.email,
+    'Reset Your Password within 10 Minutes',
+    `
+    <h2>Password Reset Request</h2>
+    <p>Click the button below to reset your password.</p>
+    <a href="${resetUILink}"
+       style="padding: 12px 20px; background: #2563eb; color: white; text-decoration: none; border-radius: 5px;">
+       Reset Password
+    </a>
+    <p>This link expires in 10 minutes.</p>
+  `,
+  )
+}
+
+const resetPassword = async (
+  payload: { id: string; newPassword: string },
+  token: string,
+) => {
+  const user = await UserModel.isUserExistByCustomId(payload.id)
+
+  if (!user) {
+    throw new AppError(status.NOT_FOUND, "The User Does't exists")
+  }
+
+  const isDeleted = user.isDeleted
+  if (isDeleted) {
+    throw new AppError(status.FORBIDDEN, 'The User is Deleted')
+  }
+
+  if (user.status === 'blocked') {
+    throw new AppError(status.FORBIDDEN, 'The User is Blocked')
+  }
+
+  const jwtPayload = {
+    id: user.id,
+    role: user.role,
+  }
+
+  const resetToken = createToken(
+    jwtPayload,
+    config.jwt_access_token as string,
+    '10m',
+  )
 }
 
 export const authServices = {
@@ -177,4 +220,5 @@ export const authServices = {
   changePassword,
   refreshToken,
   forgetPassword,
+  resetPassword,
 }
