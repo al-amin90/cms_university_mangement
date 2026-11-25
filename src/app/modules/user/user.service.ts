@@ -16,6 +16,7 @@ import { TFaculty } from '../faculty/faculty.interface'
 import FacultyModal from '../faculty/faculty.model'
 import { TAdmin } from '../admin/admin.interface'
 import AdminModal from '../admin/admin.model'
+import { verifyToken } from '../Auth/auth.utils'
 
 const createStudentDateIntoDB = async (
   password: string,
@@ -148,8 +149,28 @@ const createAdminDateIntoDB = async (password: string, adminDate: TAdmin) => {
   }
 }
 
+const getMe = async (token: string) => {
+  const decoded = verifyToken(token, config.jwt_access_token as string)
+  const { id, role } = decoded
+
+  let result = null
+  if (role === 'student') {
+    result = await StudentModal.findOne({ id }).populate('user')
+  }
+  if (role === 'admin') {
+    result = await AdminModal.findOne({ id }).populate('user')
+  }
+
+  if (role === 'faculty') {
+    result = await FacultyModal.findOne({ id }).populate('user')
+  }
+
+  return result
+}
+
 export default {
   createStudentDateIntoDB,
   createFacultyDateIntoDB,
   createAdminDateIntoDB,
+  getMe,
 }

@@ -30,5 +30,7 @@ router.post(
   userController.createAdmin,
 )
 
+router.get('/me', auth('student', 'faculty', 'admin'), userController.getMe)
+
 const userRouter = router
 export default userRouter

@@ -6,6 +6,7 @@ import config from '../config'
 import jwt, { JwtPayload } from 'jsonwebtoken'
 import { TUserRole } from '../modules/user/user.interface'
 import { UserModel } from '../modules/user/user.model'
+import { verifyToken } from '../modules/Auth/auth.utils'
 
 const auth = (...requiredRoles: TUserRole[]) => {
   return catchAsync(async (req: Request, res: Response, next: NextFunction) => {
@@ -15,7 +16,7 @@ const auth = (...requiredRoles: TUserRole[]) => {
       throw new AppError(status.FORBIDDEN, 'You are not authorized!')
     }
 
-    const decoded = jwt.verify(token, config.jwt_access_token as string)
+    const decoded = verifyToken(token, config.jwt_access_token as string)
     const { role, id, iat } = decoded as JwtPayload
 
     const user = await UserModel.isUserExistByCustomId(id)

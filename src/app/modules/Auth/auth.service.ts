@@ -5,7 +5,7 @@ import { UserModel } from '../user/user.model'
 import jwt, { JwtPayload } from 'jsonwebtoken'
 import config from '../../config'
 import bcrypt from 'bcrypt'
-import { createToken } from './auth.utils'
+import { createToken, verifyToken } from './auth.utils'
 import { sendEmail } from '../../utils/sendEmail'
 
 const loginUser = async (payload: TLoginUser) => {
@@ -96,7 +96,7 @@ const changePassword = async (
 }
 
 const refreshToken = async (token: string) => {
-  const decoded = jwt.verify(token, config.jwt_refresh_token as string)
+  const decoded = verifyToken(token, config.jwt_refresh_token as string)
   const { id, iat } = decoded as JwtPayload
 
   const user = await UserModel.isUserExistByCustomId(id)
@@ -203,8 +203,8 @@ const resetPassword = async (
     throw new AppError(status.FORBIDDEN, 'The User is Blocked')
   }
 
-  const decoded = jwt.verify(token, config.jwt_access_token as string)
-  const { id, role } = decoded as JwtPayload
+  const decoded = verifyToken(token, config.jwt_access_token as string)
+  const { id, role } = decoded
 
   if (payload.id !== id) {
     console.log(payload.id, id)
