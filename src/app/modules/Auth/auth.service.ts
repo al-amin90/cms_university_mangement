@@ -203,15 +203,29 @@ const resetPassword = async (
     throw new AppError(status.FORBIDDEN, 'The User is Blocked')
   }
 
-  const jwtPayload = {
-    id: user.id,
-    role: user.role,
+  const decoded = jwt.verify(token, config.jwt_access_token as string)
+  const { id, role } = decoded as JwtPayload
+
+  if (payload.id !== id) {
+    console.log(payload.id, id)
+    throw new AppError(status.FORBIDDEN, 'You are forbidden!')
   }
 
-  const resetToken = createToken(
-    jwtPayload,
-    config.jwt_access_token as string,
-    '10m',
+  const newPassword = await bcrypt.hash(
+    payload.newPassword,
+    Number(config.bcrypt_salt_rounds),
+  )
+
+  await UserModel.findOneAndUpdate(
+    {
+      id: id,
+      role: role,
+    },
+    {
+      password: newPassword,
+      needsPasswordChange: false,
+      passwordChangeAt: new Date(),
+    },
   )
 }
 
