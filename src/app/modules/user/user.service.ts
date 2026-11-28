@@ -16,7 +16,6 @@ import { TFaculty } from '../faculty/faculty.interface'
 import FacultyModal from '../faculty/faculty.model'
 import { TAdmin } from '../admin/admin.interface'
 import AdminModal from '../admin/admin.model'
-import { verifyToken } from '../Auth/auth.utils'
 
 const createStudentDateIntoDB = async (
   password: string,
@@ -149,10 +148,7 @@ const createAdminDateIntoDB = async (password: string, adminDate: TAdmin) => {
   }
 }
 
-const getMe = async (token: string) => {
-  const decoded = verifyToken(token, config.jwt_access_token as string)
-  const { id, role } = decoded
-
+const getMe = async (id: string, role: string) => {
   let result = null
   if (role === 'student') {
     result = await StudentModal.findOne({ id }).populate('user')
@@ -168,9 +164,15 @@ const getMe = async (token: string) => {
   return result
 }
 
+const changeStatus = async (id: string, payload: { status: string }) => {
+  const result = await UserModel.findByIdAndUpdate(id, payload, { new: true })
+  return result
+}
+
 export default {
   createStudentDateIntoDB,
   createFacultyDateIntoDB,
   createAdminDateIntoDB,
   getMe,
+  changeStatus,
 }

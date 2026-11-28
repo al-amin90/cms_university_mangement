@@ -51,16 +51,9 @@ const createAdmin = catchAsync(async (req, res, next) => {
 })
 
 const getMe = catchAsync(async (req, res) => {
-  const token = req.headers.authorization
+  const { id, role } = req.user
 
-  if (!token) {
-    throw new AppError(status.NOT_FOUND, 'Token not found !')
-  }
-
-  const { userId, role } = req.user
-
-  // const result = await userService.getMe(userId, role)
-  const result = await userService.getMe(token)
+  const result = await userService.getMe(id, role)
 
   sendResponse(res, {
     statusCode: status.OK,
@@ -70,9 +63,23 @@ const getMe = catchAsync(async (req, res) => {
   })
 })
 
+const changeStatus = catchAsync(async (req, res) => {
+  const id = req.params.id
+
+  const result = await userService.changeStatus(id, req.body)
+
+  sendResponse(res, {
+    statusCode: status.OK,
+    success: true,
+    message: 'Status is updated succesfully',
+    data: result,
+  })
+})
+
 export default {
   createStudent,
   createFaculty,
   createAdmin,
   getMe,
+  changeStatus,
 }
